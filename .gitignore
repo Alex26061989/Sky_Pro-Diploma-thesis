@@ -1,0 +1,24 @@
+# Виртуальное окружение
+venv/
+env/
+ENV/
+
+# Кэш Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Папки редакторов кода
+.vscode/
+.idea/
+
+# Файлы с секретами и настройками (токены, пароли)
+config/config.py
+*.log
+
+# Бинарные файлы (если случайно появятся)
+*.exe
+*.dmg
+*.zip
