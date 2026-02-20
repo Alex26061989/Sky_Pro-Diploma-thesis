@@ -22,3 +22,5 @@ config/config.py
 *.exe
 *.dmg
 *.zip
+
+config/data.py
