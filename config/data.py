@@ -9,6 +9,8 @@ SEARCH_ENDPOINT = "/search/facet-search"
 
 # --- Данные для API-тестов ---
 API_TOKEN = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL3VzZXItcmlnaHQiLCJzdWIiOjE5MDcxMzY1LCJpYXQiOjE3NzE3ODA5MzUsImV4cCI6MTc3MTc4NDUzNSwidHlwZSI6MjAsImp0aSI6IjAxOWM4NjVmLThlY2MtN2MyZi04NDU1LWIyNDAxN2NiOTAyNyIsInJvbGVzIjoxMH0.l-YgKgdZ5YdOR2_ZVqXvp0NTZzZ5AYseqKQ_JAE7XVe5FewOiFIHXNYgEjDknTsy9EtrExY4rUCJLv9cE5AyBvLFq3AITl5lH-z8P8kl8pQqQhdT8ArWLYxBcjmgrhteTSdwE9jy5JZ1oG_rwQNseQ8hW_RuSuKQDa7t1W73Ofpqubt9Mxcgdw_EDns6EOEjRYKMhu0kENsMGMgcrZiIQM1Qvg4kaWp_NwOOoAf4xTq54WVONIiiYZXIXXAootpd8H04b_7ruaz8ZBQHDd5yGAhfuDcFd6Gdo_9aTeXrT16mI6s3Sh-QW6gB-optY4to0ipkvVMjaSHQyiL-73tqhw"  # noqa: E501
+# API_TOKEN = "Bearer YOUR_TOKEN_HERE -> # Замени на свой токен перед запуском"
+
 
 # Параметры запросов
 CUSTOMER_CITY_ID = "213"
