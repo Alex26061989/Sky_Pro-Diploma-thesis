@@ -2,109 +2,35 @@
 
 from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
+import time
 
 class SearchResultsPage(BasePage):
     """
     Page Object для страницы результатов поиска.
     """
-    
-    # Локаторы
-    RESULTS_TITLES = (By.CSS_SELECTOR, ".product-title a")
-    NO_RESULTS_MESSAGE = (By.CSS_SELECTOR, ".catalog-empty-message")
-    ERROR_MESSAGE = (By.CSS_SELECTOR, ".error-message")
-    SEARCH_QUERY_DISPLAY = (By.CSS_SELECTOR, ".search-query-display")
-    PAGINATION = (By.CSS_SELECTOR, ".pagination")
-    SORT_DROPDOWN = (By.CSS_SELECTOR, ".sort-select")
-    FILTER_SIDEBAR = (By.CSS_SELECTOR, ".filter-sidebar")
-    
+
+    PRODUCT_TITLES = (By.CSS_SELECTOR, "a.product-card__title, .product-title a, .catalog-product__name, .product-card__name a, [data-testid='product-title']")  # noqa: E501
+    NO_RESULTS_MESSAGE = (By.CSS_SELECTOR, ".catalog-empty-message, .not-found-message")
+
     def __init__(self, driver):
         super().__init__(driver)
-    
+
     def get_results_count(self) -> int:
-        """
-        Возвращает количество найденных товаров на текущей странице.
+        """Возвращает количество найденных товаров."""
+        time.sleep(3)
+        titles = self.driver.find_elements(*self.PRODUCT_TITLES)
+        count = len(titles)
+        print(f"Найдено заголовков товаров: {count}")
         
-        Returns:
-            int
-        """
-        titles = self.driver.find_elements(*self.RESULTS_TITLES)
-        return len(titles)
-    
-    def get_result_titles(self) -> list:
-        """
-        Возвращает список названий найденных товаров.
+        # Если заголовков нет, попробуем найти карточки товаров
+        if count == 0:
+            cards = self.driver.find_elements(By.CSS_SELECTOR, ".product-card, .catalog-product")
+            count = len(cards)
+            print(f"Найдено карточек товаров: {count}")
         
-        Returns:
-            list of str
-        """
-        titles = self.driver.find_elements(*self.RESULTS_TITLES)
-        return [title.text for title in titles if title.text]
-    
-    def is_no_results_message_displayed(self) -> bool:
-        """
-        Проверяет, отображается ли сообщение об отсутствии результатов.
-        
-        Returns:
-            bool
-        """
-        return self.is_element_present(self.NO_RESULTS_MESSAGE)
-    
-    def get_no_results_message_text(self) -> str:
-        """
-        Возвращает текст сообщения об отсутствии результатов.
-        
-        Returns:
-            str
-        """
-        if self.is_no_results_message_displayed():
-            return self.find_element(self.NO_RESULTS_MESSAGE).text
-        return ""
-    
-    def is_error_message_displayed(self) -> bool:
-        """
-        Проверяет, отображается ли сообщение об ошибке.
-        
-        Returns:
-            bool
-        """
-        return self.is_element_present(self.ERROR_MESSAGE)
-    
-    def get_error_message_text(self) -> str:
-        """
-        Возвращает текст сообщения об ошибке.
-        
-        Returns:
-            str
-        """
-        if self.is_error_message_displayed():
-            return self.find_element(self.ERROR_MESSAGE).text
-        return ""
-    
-    def get_search_query_displayed(self) -> str:
-        """
-        Возвращает отображаемый поисковый запрос на странице результатов.
-        
-        Returns:
-            str
-        """
-        if self.is_element_present(self.SEARCH_QUERY_DISPLAY):
-            return self.find_element(self.SEARCH_QUERY_DISPLAY).text
-        return ""
-    
-    def has_pagination(self) -> bool:
-        """
-        Проверяет, есть ли пагинация (много результатов).
-        
-        Returns:
-            bool
-        """
-        return self.is_element_present(self.PAGINATION)
-    
-    def has_filters(self) -> bool:
-        """
-        Проверяет, отображается ли сайдбар с фильтрами.
-        
-        Returns:
-            bool
-        """
-        return self.is_element_present(self.FILTER_SIDEBAR)
+        return count
+
+    def wait_for_results(self, timeout: int = 10):
+        """Ожидает загрузки результатов поиска."""
+        time.sleep(3)
+        print("Ожидание результатов завершено")
