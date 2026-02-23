@@ -4,3 +4,4 @@ pytest
 pytest-selenium
 allure-pytest
 flake8
+python-dotenv

@@ -2,165 +2,122 @@
 
 import pytest
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import allure
 from selenium.webdriver.common.by import By
 from pages.main_page import MainPage
 from pages.search_results_page import SearchResultsPage
 from config.data import UI_TEST_DATA
 
+@allure.feature("UI тесты")
+@allure.severity(allure.severity_level.CRITICAL)
+class TestUISearch:
 
-@pytest.fixture(scope="function")
-def browser():
-    """Фикстура для создания и закрытия браузера."""
-    chrome_options = Options()
-    chrome_options.add_argument("--window-size=1920,1080")
-    driver = webdriver.Chrome(options=chrome_options)
-    yield driver
-    driver.quit()
+    @allure.title("Поиск товара по полному названию")
+    @allure.description("Проверка поиска по полному названию 'Шариковая ручка'")
+    def test_search_by_full_title(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-@pytest.mark.ui
-def test_search_by_full_title(browser):
-    """Поиск товара по полному названию."""
-    main_page = MainPage(browser)
-    main_page.open()
+        with allure.step(f"Ввести поисковый запрос: {UI_TEST_DATA['search_queries']['standard']}"):
+            search_query = UI_TEST_DATA["search_queries"]["standard"]
+            main_page.search(search_query)
 
-    search_query = UI_TEST_DATA["search_queries"]["standard"]
-    print(f"\nПоисковый запрос: {search_query}")
-    
-    main_page.search(search_query)
-    
-    # Ждем загрузки
-    time.sleep(3)
-    
-    # Сохраняем скриншот
-    browser.save_screenshot("search_results.png")
-    print("Скриншот сохранен как search_results.png")
-    
-    # Выводим текущий URL
-    print(f"Текущий URL: {browser.current_url}")
-    
-    # Ищем все ссылки на странице
-    all_links = browser.find_elements(By.TAG_NAME, "a")
-    print(f"Всего ссылок на странице: {len(all_links)}")
-    
-    # Покажем первые 10 ссылок с текстом
-    for i, link in enumerate(all_links[:10]):
-        text = link.text
-        if text and len(text) > 3:
-            print(f"Ссылка {i+1}: {text[:50]}...")
+        with allure.step("Дождаться загрузки результатов"):
+            time.sleep(3)
 
-    results_page = SearchResultsPage(browser)
-    results_page.wait_for_results()
+        with allure.step("Проверить результаты поиска"):
+            results_page = SearchResultsPage(browser)
+            results_page.wait_for_results()
+            results_count = results_page.get_results_count()
+            
+        with allure.step(f"Проверить, что найдены товары по запросу '{search_query}'"):
+            assert results_count > 0, f"Нет товаров по запросу '{search_query}'"
 
-    results_count = results_page.get_results_count()
-    print(f"Найдено товаров: {results_count}")
-    
-    assert results_count > 0, f"Нет товаров по запросу '{search_query}'"
+    @allure.title("Поиск по длинному названию")
+    def test_search_by_long_title(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
+        with allure.step("Ввести длинный поисковый запрос"):
+            long_query = UI_TEST_DATA["search_queries"]["long"]
+            main_page.search(long_query)
 
-@pytest.mark.ui
-def test_search_by_full_title(browser):
-    """Поиск товара по полному названию."""
-    main_page = MainPage(browser)
-    main_page.open()
+        with allure.step("Проверить, что запрос не обрезался"):
+            input_value = main_page.get_search_input_value()
+            assert input_value == long_query, "Запрос в поле поиска изменился"
 
-    search_query = UI_TEST_DATA["search_queries"]["standard"]
-    print(f"\nПоисковый запрос: {search_query}")
+    @allure.title("Проверка автоподстановки")
+    def test_autocomplete_suggestions(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-    main_page.search(search_query)
+        with allure.step(f"Ввести частичный запрос: {UI_TEST_DATA['search_queries']['autocomplete_part']}"):
+            partial_query = UI_TEST_DATA["search_queries"]["autocomplete_part"]
+            main_page.input_text(main_page.SEARCH_INPUT, partial_query)
 
-    time.sleep(3)
-    
-    # Проверяем заголовок страницы
-    page_title = browser.title
-    print(f"Заголовок страницы: {page_title}")
-    
-    # Проверяем, нет ли сообщения об ошибке
-    page_source = browser.page_source
-    if "технические работы" in page_source.lower():
-        print("⚠️ Сайт на техническом обслуживании!")
-    elif "not found" in page_source.lower() or "404" in page_source:
-        print("⚠️ Страница не найдена!")
-    
-    browser.save_screenshot("search_results.png")
-    print("Скриншот сохранен как search_results.png")
-    print(f"Текущий URL: {browser.current_url}")
+        with allure.step("Проверить появление автоподстановки"):
+            assert main_page.is_autocomplete_displayed(), "Автоподстановка не появилась"
 
-    all_links = browser.find_elements(By.TAG_NAME, "a")
-    print(f"Всего ссылок на странице: {len(all_links)}")
+        with allure.step("Проверить наличие подсказок"):
+            suggestions = main_page.get_autocomplete_suggestions()
+            assert len(suggestions) > 0, "Список подсказок пуст"
 
-    results_page = SearchResultsPage(browser)
-    results_page.wait_for_results()
+    @allure.title("Поиск с пустым запросом")
+    def test_search_empty_query(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-    results_count = results_page.get_results_count()
-    print(f"Найдено товаров: {results_count}")
+        with allure.step("Очистить поле поиска и выполнить поиск"):
+            main_page.clear_search_input()
+            main_page.search("")
 
-    assert results_count > 0, f"Нет товаров по запросу '{search_query}'"
+        with allure.step("Проверить, что поиск не выполнен"):
+            current_url = browser.current_url
+            assert "search" not in current_url, "Поиск с пустым запросом не должен работать"
 
+    @allure.title("Поиск со спецсимволами")
+    def test_search_special_characters(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-@pytest.mark.ui
-def test_autocomplete_suggestions(browser):
-    """Проверка автоподстановки."""
-    main_page = MainPage(browser)
-    main_page.open()
+        with allure.step("Ввести спецсимволы в поиск"):
+            special_query = UI_TEST_DATA["search_queries"]["specials"]
+            main_page.search(special_query)
 
-    partial_query = UI_TEST_DATA["search_queries"]["autocomplete_part"]
-    main_page.input_text(main_page.SEARCH_INPUT, partial_query)
+        with allure.step("Проверить, что товары не найдены"):
+            results_page = SearchResultsPage(browser)
+            results_page.wait_for_results()
+            results_count = results_page.get_results_count()
+            assert results_count == 0, "Найдены товары по спецсимволам"
 
-    assert main_page.is_autocomplete_displayed(), "Автоподстановка не появилась"
+    @allure.title("Навигация в каталог")
+    def test_catalog_navigation(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-    suggestions = main_page.get_autocomplete_suggestions()
-    assert len(suggestions) > 0, "Список подсказок пуст"
+        with allure.step("Перейти в каталог"):
+            main_page.go_to_catalog()
 
+        with allure.step("Проверить URL каталога"):
+            current_url = browser.current_url
+            assert "catalog" in current_url.lower() or "category" in current_url.lower(), \
+                f"Переход в каталог не произошел, URL: {current_url}"
 
-@pytest.mark.ui
-def test_search_empty_query(browser):
-    """Поиск с пустым запросом."""
-    main_page = MainPage(browser)
-    main_page.open()
+    @allure.title("Доступ к корзине")
+    def test_cart_access(self, browser):
+        with allure.step("Открыть главную страницу"):
+            main_page = MainPage(browser)
+            main_page.open()
 
-    main_page.clear_search_input()
-    main_page.search("")
+        with allure.step("Перейти в корзину"):
+            main_page.go_to_cart()
 
-    current_url = browser.current_url
-    assert "search" not in current_url, "Поиск с пустым запросом не должен работать"
-
-
-@pytest.mark.ui
-def test_search_special_characters(browser):
-    """Поиск со спецсимволами."""
-    main_page = MainPage(browser)
-    main_page.open()
-
-    special_query = UI_TEST_DATA["search_queries"]["specials"]
-    main_page.search(special_query)
-
-    results_page = SearchResultsPage(browser)
-    results_page.wait_for_results()
-
-    results_count = results_page.get_results_count()
-    assert results_count == 0, "Найдены товары по спецсимволам"
-
-
-@pytest.mark.ui
-def test_catalog_navigation(browser):
-    """Навигация через каталог."""
-    main_page = MainPage(browser)
-    main_page.open()
-    main_page.go_to_catalog()
-
-    current_url = browser.current_url
-    assert "catalog" in current_url.lower() or "category" in current_url.lower(), \
-        f"Переход в каталог не произошел, URL: {current_url}"
-
-
-@pytest.mark.ui
-def test_cart_access(browser):
-    """Доступ к корзине."""
-    main_page = MainPage(browser)
-    main_page.open()
-    main_page.go_to_cart()
-
-    current_url = browser.current_url
-    assert "cart" in current_url.lower(), f"Переход в корзину не произошел, URL: {current_url}"
+        with allure.step("Проверить URL корзины"):
+            current_url = browser.current_url
+            assert "cart" in current_url.lower(), f"Переход в корзину не произошел, URL: {current_url}"

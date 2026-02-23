@@ -1,6 +1,7 @@
 # tests/test_api.py
 
 import pytest
+import allure
 import requests
 from config.data import (
     API_BASE_URL, API_TOKEN, SEARCH_ENDPOINT,
@@ -14,73 +15,92 @@ HEADERS = {
 }
 
 
-@pytest.mark.api
-def test_search_full_title_cyrillic():
-    """Поиск по полному названию на кириллице."""
-    url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
-    params = build_search_params(SEARCH_QUERIES["valid_full_cyrillic"])
-    response = requests.get(url, params=params, headers=HEADERS)
+@allure.feature("API тесты")
+@allure.severity(allure.severity_level.CRITICAL)
+class TestAPISearch:
 
-    assert response.status_code == 200
-    data = response.json()
-    assert "data" in data
-    assert len(data["data"]) > 0
+    @allure.title("Поиск по полному названию на кириллице")
+    def test_search_full_title_cyrillic(self):
+        with allure.step("Подготовить параметры запроса"):
+            url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
+            params = build_search_params(SEARCH_QUERIES["valid_full_cyrillic"])
 
+        with allure.step("Выполнить GET запрос"):
+            response = requests.get(url, params=params, headers=HEADERS)
 
-@pytest.mark.api
-def test_search_partial_title():
-    """Поиск по неполному названию."""
-    url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
-    params = build_search_params(SEARCH_QUERIES["valid_partial"])
-    response = requests.get(url, params=params, headers=HEADERS)
+        with allure.step("Проверить статус ответа 200"):
+            assert response.status_code == 200
 
-    assert response.status_code == 200
+        with allure.step("Проверить наличие данных в ответе"):
+            data = response.json()
+            assert "data" in data
+            assert len(data["data"]) > 0
 
+    @allure.title("Поиск по неполному названию")
+    def test_search_partial_title(self):
+        with allure.step("Подготовить параметры запроса"):
+            url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
+            params = build_search_params(SEARCH_QUERIES["valid_partial"])
 
-@pytest.mark.api
-def test_search_empty_query():
-    """Поиск с пустым запросом."""
-    url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
-    params = build_search_params(SEARCH_QUERIES["empty"])
-    response = requests.get(url, params=params, headers=HEADERS)
+        with allure.step("Выполнить GET запрос"):
+            response = requests.get(url, params=params, headers=HEADERS)
 
-    assert response.status_code == 400
-    data = response.json()
-    error_message = extract_error_message(data)
-    assert ERROR_MESSAGES["phrase_required"] in error_message
+        with allure.step("Проверить статус ответа 200"):
+            assert response.status_code == 200
 
-@pytest.mark.api
-def test_search_special_characters():
-    """Поиск со спецсимволами (допустимы коды 403 или 422)."""
-    url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
-    params = build_search_params(SEARCH_QUERIES["specials"])
-    response = requests.get(url, params=params, headers=HEADERS)
+    @allure.title("Поиск с пустым запросом")
+    def test_search_empty_query(self):
+        with allure.step("Подготовить параметры с пустым запросом"):
+            url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
+            params = build_search_params(SEARCH_QUERIES["empty"])
 
-    # Принимаем оба возможных статуса
-    assert response.status_code in [403, 422], \
-        f"Ожидался статус 403 или 422, получен {response.status_code}"
-    
-    # Проверяем, что это либо JSON с ошибкой, либо HTML с блокировкой
-    content_type = response.headers.get('Content-Type', '')
-    if 'application/json' in content_type:
-        data = response.json()
-        error_message = extract_error_message(data)
-        assert error_message, "Получено пустое сообщение об ошибке"
-        print(f"Получен статус {response.status_code}, сообщение: {error_message}")
-    else:
-        # Это HTML страница с блокировкой
-        assert 'Access Blocked' in response.text or 'blocked' in response.text.lower()
-        print(f"Получен статус {response.status_code} (HTML страница блокировки)")
+        with allure.step("Выполнить GET запрос"):
+            response = requests.get(url, params=params, headers=HEADERS)
 
-@pytest.mark.api
-def test_search_without_token():
-    """Запрос без токена авторизации."""
-    url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
-    params = build_search_params(SEARCH_QUERIES["valid_full_cyrillic"])
-    headers_without_auth = {"Content-Type": "application/json"}
-    response = requests.get(url, params=params, headers=headers_without_auth)
+        with allure.step("Проверить статус ответа 400"):
+            assert response.status_code == 400
 
-    assert response.status_code == 401
-    data = response.json()
-    assert "message" in data
-    assert ERROR_MESSAGES["auth_required"] in data["message"]
+        with allure.step("Проверить сообщение об ошибке"):
+            data = response.json()
+            error_message = extract_error_message(data)
+            assert ERROR_MESSAGES["phrase_required"] in error_message
+
+    @allure.title("Поиск со спецсимволами")
+    def test_search_special_characters(self):
+        with allure.step("Подготовить запрос со спецсимволами"):
+            url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
+            params = build_search_params(SEARCH_QUERIES["specials"])
+
+        with allure.step("Выполнить GET запрос"):
+            response = requests.get(url, params=params, headers=HEADERS)
+
+        with allure.step("Проверить статус ответа (403 или 422)"):
+            assert response.status_code in [403, 422], \
+                f"Ожидался статус 403 или 422, получен {response.status_code}"
+
+        with allure.step("Проверить наличие ошибки"):
+            content_type = response.headers.get('Content-Type', '')
+            if 'application/json' in content_type:
+                data = response.json()
+                error_message = extract_error_message(data)
+                assert error_message, "Получено пустое сообщение об ошибке"
+            else:
+                assert 'Access Blocked' in response.text or 'blocked' in response.text.lower()
+
+    @allure.title("Запрос без токена авторизации")
+    def test_search_without_token(self):
+        with allure.step("Подготовить запрос без токена"):
+            url = f"{API_BASE_URL}{SEARCH_ENDPOINT}"
+            params = build_search_params(SEARCH_QUERIES["valid_full_cyrillic"])
+            headers_without_auth = {"Content-Type": "application/json"}
+
+        with allure.step("Выполнить GET запрос без авторизации"):
+            response = requests.get(url, params=params, headers=headers_without_auth)
+
+        with allure.step("Проверить статус ответа 401"):
+            assert response.status_code == 401
+
+        with allure.step("Проверить сообщение об ошибке"):
+            data = response.json()
+            assert "message" in data
+            assert ERROR_MESSAGES["auth_required"] in data["message"]

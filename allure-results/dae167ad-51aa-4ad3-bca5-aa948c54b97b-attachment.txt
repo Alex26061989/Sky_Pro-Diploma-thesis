@@ -1,0 +1,57 @@
+Найдено модальное окно с городом, закрываем...
+Не удалось найти элемент. Ошибка: Message: invalid selector: An invalid or illegal selector was specified
+  (Session info: chrome=145.0.7632.109); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidselectorexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x7ff671564435
+	0x7ff671564490
+	0x7ff6712fd49d
+	0x7ff671305411
+	0x7ff671308534
+	0x7ff6713085ff
+	0x7ff671357a7e
+	0x7ff67135860c
+	0x7ff6713a8b67
+	0x7ff6713a5728
+	0x7ff671348e38
+	0x7ff671349d23
+	0x7ff671833b30
+	0x7ff67182e3b8
+	0x7ff67184e72a
+	0x7ff6715807e5
+	0x7ff67158978c
+	0x7ff67156d794
+	0x7ff67156d946
+	0x7ff671553457
+	0x7fffadca7374
+	0x7fffaf0dcc91
+
+Нет модального окна или ошибка: Message: invalid selector: An invalid or illegal selector was specified
+  (Session info: chrome=145.0.7632.109); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#invalidselectorexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x7ff671564435
+	0x7ff671564490
+	0x7ff6712fd49d
+	0x7ff671305411
+	0x7ff671308534
+	0x7ff6713085ff
+	0x7ff671357a7e
+	0x7ff67135860c
+	0x7ff6713a8b67
+	0x7ff6713a5728
+	0x7ff671348e38
+	0x7ff671349d23
+	0x7ff671833b30
+	0x7ff67182e3b8
+	0x7ff67184e72a
+	0x7ff6715807e5
+	0x7ff67158978c
+	0x7ff67156d794
+	0x7ff67156d946
+	0x7ff671553457
+	0x7fffadca7374
+	0x7fffaf0dcc91
+
+Ожидание результатов завершено
+Найдено заголовков товаров: 87
